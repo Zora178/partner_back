@@ -18,7 +18,9 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -184,6 +186,7 @@ public  class UserServiceImpl extends ServiceImpl<UserMapper, User>
     /**
      *根据标签搜索用户
      * @param tagNameList 用户要拥有的标签
+     *                    使用内存查询
      * @return
      */
     @Override
@@ -207,7 +210,8 @@ public  class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 if (StringUtils.isBlank(tagsStr)){
                     return false;
                 }
-                Set<String> tempTagNameSet = gson.fromJson(tagsStr,new TypeToken<Set<String>>(){}.getType());
+                Set<String> tempTagNameSet =gson.fromJson(tagsStr,new TypeToken<Set<String>>(){}.getType());
+                tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
                 for (String tagName : tagNameList){
                     if(!tempTagNameSet.contains(tagName)){
                         return false;
