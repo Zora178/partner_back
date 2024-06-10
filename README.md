@@ -50,8 +50,10 @@ id int 主键
 适用于前后端分离项目
 
 (springboot2.6以上需要修改配置mvc使用matching-strategy: ant_path_matcher)
+
 网页访问
 http://localhost:8080/api/doc.html#/home
-测试
+
+测试（注意profile的设置一致性）
 1、userLogin登录  zora 12345678
 2、getCurrent获取当前登录用户 
