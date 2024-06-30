@@ -2,7 +2,7 @@ package com.zora178.user_back.common;
 
 /**
  * 全局错误码
- * @author zora
+ * @author csp
  */
 public enum ErrorCode {
     /**

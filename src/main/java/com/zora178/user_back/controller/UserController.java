@@ -9,6 +9,9 @@ import com.zora178.user_back.model.domain.User;
 import com.zora178.user_back.model.domain.request.UserLoginRequest;
 import com.zora178.user_back.model.domain.request.UserRegisterRequest;
 import com.zora178.user_back.service.UserService;
+import com.zora178.user_back.service.impl.UserServiceImpl;
+import io.swagger.models.auth.In;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +33,7 @@ import static com.zora178.user_back.contant.UserConston.USER_LOGIN_STATE;
 @RestController
 @RequestMapping("/user")
 //解决跨域
-@CrossOrigin(origins = {"http://localhost:5173"})
+@CrossOrigin(origins = {"http://localhost:5173"}, allowCredentials = "true")
 public class UserController {
 
     @Resource
@@ -92,7 +95,7 @@ public class UserController {
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
 
-        if (!isAdmin(request)){
+        if (!userService.isAdmin(request)){
             throw new BusinessException(ErrorCode.NO_AUTH,"非管理员");
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -104,7 +107,6 @@ public class UserController {
         return ResultUtils.success(list);
     }
 
-
     @GetMapping("/search/tags")
     public BaseResponse<List<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList){
         if (CollectionUtils.isEmpty(tagNameList)){
@@ -114,9 +116,22 @@ public class UserController {
         return ResultUtils.success(userList);
     }
 
+    @PostMapping("/updatate")
+    public BaseResponse<Integer> updateUser(@RequestBody User user, HttpServletRequest request){
+//        1、校验参数是否为空 2、校验权限 3、触发更新
+        if(user == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        int result = userService.updateUser(user, loginUser);
+//        成功响应类
+        return ResultUtils.success(result);
+
+    }
+
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteUsers(@RequestBody long id, HttpServletRequest request) {
-        if (!isAdmin(request)){
+        if (!userService.isAdmin(request)){
             throw new BusinessException(ErrorCode.NO_AUTH,"非管理员");
         }
         if (id <= 0) {
@@ -126,20 +141,5 @@ public class UserController {
         return ResultUtils.success(b);
     }
 
-    /**
-     * 是否为管理员
-     *
-     * @param request
-     * @return
-     */
-    private boolean isAdmin(HttpServletRequest request){
-        //        仅管理员可查询
-        Object userobject = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User user = (User) userobject;
-        if (user == null || user.getUserRole()!= ADMIN_ROLE){
-            return false;
-        }
-        return true;
-    }
 
 }

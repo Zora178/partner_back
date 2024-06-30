@@ -57,3 +57,5 @@ http://localhost:8080/api/doc.html#/home
 测试（注意profile的设置一致性）
 1、userLogin登录  zora 12345678
 2、getCurrent获取当前登录用户 
+
+redis(单机改分布式)

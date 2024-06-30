@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
 import com.zora178.user_back.common.ErrorCode;
+import com.zora178.user_back.contant.UserConston;
 import com.zora178.user_back.exception.BusinessException;
 import com.zora178.user_back.model.domain.User;
 import com.zora178.user_back.service.UserService;
@@ -26,6 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.zora178.user_back.contant.UserConston.ADMIN_ROLE;
 import static com.zora178.user_back.contant.UserConston.USER_LOGIN_STATE;
 
 /**
@@ -221,6 +223,61 @@ public  class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }).map(this::getsafetyUser).collect(Collectors.toList());
 //        return userList.stream().map(this::getsafetyUser).collect(Collectors.toList());
     }
+
+    @Override
+    public int updateUser(User user, User loginUser) {
+//        权限校验(本人+管理员）
+        long userId = user.getId();
+        if (userId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        //  管理员可以更新任意信息
+        //  用户只能更新自己的信息
+        if (!isAdmin(loginUser) && userId != loginUser.getId()) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        User oldUser = this.getById(user.getId());
+        if (oldUser == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        // 3. 触发更新
+        return this.baseMapper.updateById(user);
+    }
+
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        if(request == null){
+            return null;
+        }
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        if(userObj == null){
+            throw  new BusinessException(ErrorCode.NO_AUTH);
+        }
+        return (User) userObj;
+    }
+    /**
+     * 是否为管理员
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public boolean isAdmin(HttpServletRequest request) {
+        //        仅管理员可查询
+        Object userobject = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User user = (User) userobject;
+            return user != null && user.getUserRole() == UserConston.ADMIN_ROLE;
+    }
+        /**
+         * 是否为管理员
+         *
+         * @param loginUser
+         * @return
+         */
+        @Override
+        public boolean isAdmin(User loginUser) {
+                return loginUser != null && loginUser.getUserRole() == UserConston.ADMIN_ROLE;
+        }
 }
 
 

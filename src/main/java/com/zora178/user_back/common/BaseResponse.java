@@ -6,7 +6,7 @@ import java.io.Serializable;
 
 /**
  * 通用返回类
- * @author zora
+ * @author csp
  * @param <T>
  */
 
